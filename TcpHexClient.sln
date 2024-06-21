@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34601.278
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TcpHexClient", "TcpHexClient\TcpHexClient.csproj", "{26E7B0D9-68C7-4CCD-A10F-2503D74769A4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{AFCA21F6-3FD2-4C34-A7EC-3E06045BB774}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{26E7B0D9-68C7-4CCD-A10F-2503D74769A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26E7B0D9-68C7-4CCD-A10F-2503D74769A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26E7B0D9-68C7-4CCD-A10F-2503D74769A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFCA21F6-3FD2-4C34-A7EC-3E06045BB774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFCA21F6-3FD2-4C34-A7EC-3E06045BB774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFCA21F6-3FD2-4C34-A7EC-3E06045BB774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFCA21F6-3FD2-4C34-A7EC-3E06045BB774}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

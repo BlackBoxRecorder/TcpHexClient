@@ -4,7 +4,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using TcpHexClient;
 
 namespace TcpHex
 {
@@ -100,10 +99,7 @@ namespace TcpHex
 
             try
             {
-                if (!await semaphore.WaitAsync(Timeout))
-                {
-                    throw new TimeoutException("等待获取锁超时");
-                }
+                await WaitLockAsync();
 
                 await Connect()
                     .ContinueWith(x =>
@@ -126,10 +122,7 @@ namespace TcpHex
         {
             try
             {
-                if (!await semaphore.WaitAsync(Timeout))
-                {
-                    throw new TimeoutException("等待获取锁超时");
-                }
+                await WaitLockAsync();
 
                 if (cts != null)
                 {
@@ -161,10 +154,7 @@ namespace TcpHex
         {
             try
             {
-                if (!await semaphore.WaitAsync(Timeout))
-                {
-                    throw new TimeoutException("等待获取锁超时");
-                }
+                await WaitLockAsync();
 
                 return await Receive(recvLength);
             }
@@ -189,10 +179,7 @@ namespace TcpHex
         {
             try
             {
-                if (!await semaphore.WaitAsync(Timeout))
-                {
-                    throw new TimeoutException("等待获取锁超时");
-                }
+                await WaitLockAsync();
 
                 return await SendAndRecv(data, recvLength);
             }
@@ -215,10 +202,7 @@ namespace TcpHex
         {
             try
             {
-                if (!await semaphore.WaitAsync(Timeout))
-                {
-                    throw new TimeoutException("等待获取锁超时");
-                }
+                await WaitLockAsync();
 
                 byte[] buffer = new byte[2048];
                 while (_networkStream.DataAvailable)
@@ -397,6 +381,14 @@ namespace TcpHex
             }
 
             return buffer;
+        }
+
+        private async Task WaitLockAsync()
+        {
+            if (!await semaphore.WaitAsync(Timeout))
+            {
+                throw new TimeoutException("等待获取锁超时");
+            }
         }
 
         private void CheckConnectionState()
