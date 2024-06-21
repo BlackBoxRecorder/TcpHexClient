@@ -4,10 +4,11 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using TcpHexClient;
 
 namespace TcpHex
 {
-    public class TcpHexClient
+    public class TcpHexClient : ITcpHexClient
     {
         private TcpClient _tcpClient;
         private NetworkStream _networkStream;
@@ -97,10 +98,13 @@ namespace TcpHex
                 return true;
             }
 
-            await semaphore.WaitAsync();
-
             try
             {
+                if (!await semaphore.WaitAsync(Timeout))
+                {
+                    throw new TimeoutException("等待获取锁超时");
+                }
+
                 await Connect()
                     .ContinueWith(x =>
                     {
@@ -120,10 +124,13 @@ namespace TcpHex
         /// </summary>
         public async Task CloseAsync()
         {
-            await semaphore.WaitAsync();
-
             try
             {
+                if (!await semaphore.WaitAsync(Timeout))
+                {
+                    throw new TimeoutException("等待获取锁超时");
+                }
+
                 if (cts != null)
                 {
                     cts.Cancel();
@@ -152,10 +159,13 @@ namespace TcpHex
         /// <returns></returns>
         public async Task<byte[]> ReceiveAsync(int recvLength)
         {
-            await semaphore.WaitAsync();
-
             try
             {
+                if (!await semaphore.WaitAsync(Timeout))
+                {
+                    throw new TimeoutException("等待获取锁超时");
+                }
+
                 return await Receive(recvLength);
             }
             catch (Exception ex)
@@ -177,16 +187,50 @@ namespace TcpHex
         /// <returns></returns>
         public async Task<byte[]> SendAsync(byte[] data, int recvLength = 0)
         {
-            await semaphore.WaitAsync();
-
             try
             {
+                if (!await semaphore.WaitAsync(Timeout))
+                {
+                    throw new TimeoutException("等待获取锁超时");
+                }
+
                 return await SendAndRecv(data, recvLength);
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex.Message, ex);
                 throw;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        /// <summary>
+        /// 清空接收区缓存的数据
+        /// </summary>
+        /// <returns></returns>
+        public async Task ClearRecvBufferAsync()
+        {
+            try
+            {
+                if (!await semaphore.WaitAsync(Timeout))
+                {
+                    throw new TimeoutException("等待获取锁超时");
+                }
+
+                byte[] buffer = new byte[2048];
+                while (_networkStream.DataAvailable)
+                {
+                    _ = await _networkStream.ReadAsync(buffer, 0, 2048);
+                }
+
+                _logger.LogInfo("清空接收区缓存");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex);
             }
             finally
             {
@@ -241,7 +285,7 @@ namespace TcpHex
             }
             int reconnectDelay = 100;
 
-            while (!cts.Token.IsCancellationRequested)
+            while (cts != null && !cts.Token.IsCancellationRequested)
             {
                 if (_tcpClient != null && _tcpClient.Connected)
                 {
@@ -310,7 +354,7 @@ namespace TcpHex
                     {
                         _tcpClient.Close();
                         _tcpClient = null;
-                        throw new InvalidOperationException("套接字不可读");
+                        throw new InvalidOperationException("套接字读取失败，连接可能已断开，或者服务端没有发送数据");
                     }
 
                     throw new TimeoutException($"读取指定长度的数据超时, {Timeout}ms");
